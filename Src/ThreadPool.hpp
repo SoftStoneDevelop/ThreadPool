@@ -28,14 +28,11 @@ namespace ThreadPool
 			stop();
 		}
 
-		template <class F, class... Args>
-		std::future<std::result_of_t<F(Args...)>> enqueue(F&& f, Args &&...args)
+		template <typename F, typename... Args, typename ReturnType = std::invoke_result_t<F, Args...>>
+		std::future<ReturnType> enqueue(F&& f, Args &&...args)
 		{
-			/* The return type of task `F` */
-			using return_type = std::result_of_t<F(Args...)>;
-
 			/* wrapper for no arguments */
-			auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+			auto task = std::make_shared<std::packaged_task<ReturnType()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
 			{
 				std::lock_guard<std::mutex> lg(m_);
 
